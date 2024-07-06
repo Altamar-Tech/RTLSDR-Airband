@@ -51,6 +51,10 @@ find_library(LIBPTHREAD pthread REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 
+pkg_check_modules(ZMQ REQUIRED libzmq)
+list(APPEND rtl_airband_extra_libs ${ZMQ_LIBRARIES})
+list(APPEND rtl_airband_include_dirs ${ZMQ_INCLUDE_DIRS})
+
 pkg_check_modules(CONFIG REQUIRED libconfig++)
 list(APPEND rtl_airband_extra_libs ${CONFIG_LIBRARIES})
 list(APPEND rtl_airband_include_dirs ${CONFIG_INCLUDE_DIRS})

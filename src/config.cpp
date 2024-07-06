@@ -769,6 +769,11 @@ int parse_devices(libconfig::Setting& devs) {
         }
         if (dev->mode == R_MULTICHANNEL) {
             dev->input->centerfreq = parse_anynum2int(devs[i]["centerfreq"]);
+            if (devs[i].exists("send_raw")) {
+                auto const* endpoint = (char const*)devs[i]["send_raw"];
+                auto rate = (162.0 - dev->input->centerfreq) / dev->input->sample_rate;
+                dev->raw_sender = raw(rate, endpoint);
+            }
         }  // centerfreq for R_SCAN will be set by parse_channels() after frequency list has been read
 #ifdef NFM
         if (devs[i].exists("tau")) {

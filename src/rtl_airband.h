@@ -29,9 +29,11 @@
 #include <complex>
 #include <cstdio>
 #include <libconfig.h++>
+#include <optional>
 #include <string>
 
 #include "config.h"
+#include "raw.h"
 
 #ifdef WITH_BCM_VC
 #include "hello_fft/gpu_fft.h"
@@ -283,6 +285,7 @@ struct device_t {
     int failed;
     enum rec_modes mode;
     size_t output_overrun_count;
+    std::optional<raw> raw_sender;
 };
 
 struct mixinput_t {

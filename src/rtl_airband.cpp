@@ -399,6 +399,18 @@ void* demodulate(void* params) {
             continue;
         }
 
+        if (dev->raw_sender) {
+            switch (dev->input->sfmt) {
+                case sample_format_t::SFMT_S16: {
+                    auto const* beg = (short const*)(dev->input->buffer + dev->input->bufs);
+                    auto const* end = (short const*)(dev->input->bufs + bps * FFT_BATCH);
+                    dev->raw_sender->process(beg, end - beg);
+                } break;
+                default:
+                    break;
+            }
+        }
+
         if (dev->input->sfmt == SFMT_S16) {
             float const scale = 1.0f / dev->input->fullscale;
 #ifdef WITH_BCM_VC
