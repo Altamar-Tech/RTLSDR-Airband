@@ -400,6 +400,7 @@ void* demodulate(void* params) {
         }
 
         if (dev->raw_sender) {
+            log(LOG_NOTICE, "raw_sender: sfmt: %d\n", dev->input->sfmt);
             switch (dev->input->sfmt) {
                 case sample_format_t::SFMT_S16: {
                     auto const* beg = (short const*)(dev->input->buffer + dev->input->bufs);
