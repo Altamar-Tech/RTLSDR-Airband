@@ -18,7 +18,7 @@ struct raw {
    public:
     raw(float rate, const char* addr) : context(zmq_ctx_new()), socket(zmq_socket(context, ZMQ_PUB)), shift(rate) {
         auto rc = zmq_bind(socket, addr);
-        log(LOG_NOTICE, "zmq:  bind '%s':%d\n", addr, rc);
+        log(LOG_NOTICE, "zmq:  bind '%s', addr %d, socket:%x\n", addr, rc, socket);
     }
     ~raw() {
         zmq_close(socket);
@@ -40,15 +40,14 @@ struct raw {
         } else {
             log(LOG_NOTICE, "raw(process): unsupported type\n");
         }
-        log(LOG_NOTICE, "raw send len: %d\n", len * sizeof(decltype(out)::value_type));
         send(out.data(), len * sizeof(decltype(out)::value_type));
     }
 
     void send(void const* buffer, std::size_t len) {
         auto sent = zmq_send(socket, buffer, len, 0);
         if (sent == -1)
-            printf("zmq send: error: %d\n", errno);
+            log(LOG_NOTICE, "zmq send: error %d, socket %x\n", len * sizeof(decltype(out)::value_type), socket);
         else
-            printf("zmq:  sent %ld, %d\n", len, sent);
+            log(LOG_NOTICE, "zmq:  sent %ld, %d\n", len, sent);
     }
 };
