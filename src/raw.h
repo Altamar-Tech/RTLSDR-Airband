@@ -5,18 +5,20 @@
 #include <zmq.h>
 #include <algorithm>
 #include <execution>
+#include <string>
 #include <vector>
 
 struct raw {
    private:
     void* context = nullptr;
     void* socket = nullptr;
+    std::string address;
     freq_shift shift;
     std::vector<float> in;
     std::vector<float> out;
 
    public:
-    raw(float rate, const char* addr) : context(zmq_ctx_new()), socket(zmq_socket(context, ZMQ_PUB)), shift(rate) {
+    raw(float rate, const char* addr) : address(addr), shift(rate) {
         auto rc = zmq_bind(socket, addr);
         log(LOG_NOTICE, "zmq:  bind '%s', addr %d, socket:%x\n", addr, rc, socket);
     }
@@ -25,8 +27,17 @@ struct raw {
         zmq_ctx_destroy(context);
     }
 
+    void init() {
+        context = zmq_ctx_new();
+        socket = zmq_socket(context, ZMQ_PUB);
+        auto rc = zmq_bind(socket, address.c_str());
+        log(LOG_NOTICE, "zmq:  bind '%s', rc %d, socket:%x\n", address.c_str(), rc, socket);
+    }
+
     template <typename T>
     void process(T const* buffer, std::size_t len) {
+        if (!context)
+            init();
         out.resize(len);
         if constexpr (std::is_same_v<T, float>) {
             shift(buffer, out.data(), len);
