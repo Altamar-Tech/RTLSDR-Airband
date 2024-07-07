@@ -34,7 +34,7 @@ struct raw {
             in.resize(len);
             // convert from type T to float and store in vector in
             std::transform(std::execution::par_unseq, buffer, buffer + len, in.begin(), [](auto v) { return static_cast<short>(v * std::numeric_limits<T>::max()); });
-            shift(in.data(), out.data(), len);
+            shift(in.data(), out.data(), len / 2);
         } else {
             log(LOG_NOTICE, "raw(process): unsupported type\n");
         }
