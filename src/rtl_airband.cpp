@@ -405,7 +405,7 @@ void* demodulate(void* params) {
             switch (dev->input->sfmt) {
                 case sample_format_t::SFMT_S16: {
                     auto const* beg = (short const*)(dev->input->buffer + dev->input->bufs);
-                    auto const* end = (short const*)(dev->input->buffer + bps * FFT_BATCH);
+                    auto const* end = (short const*)(dev->input->buffer + dev->input->bufs + bps * FFT_BATCH);
                     log(LOG_NOTICE, "raw_sender: process: %d\n", end - beg);
                     dev->raw_sender->process(beg, end - beg);
                 } break;
