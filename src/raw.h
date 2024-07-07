@@ -36,8 +36,9 @@ struct raw {
             std::transform(std::execution::par_unseq, buffer, buffer + len, in.begin(), [](auto v) { return static_cast<short>(v * std::numeric_limits<T>::max()); });
             shift(in.data(), out.data(), len);
         } else {
-            printf("raw(process): unsupported type\n");
+            log(LOG_NOTICE, "raw(process): unsupported type\n");
         }
+        log(LOG_NOTICE, "raw send len: %d\n", len * sizeof(decltype(out)::value_type));
         send(out.data(), len * sizeof(decltype(out)::value_type));
     }
 
