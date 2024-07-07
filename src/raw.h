@@ -46,7 +46,7 @@ struct raw {
     void send(void const* buffer, std::size_t len) {
         auto sent = zmq_send(socket, buffer, len, 0);
         if (sent == -1)
-            log(LOG_NOTICE, "zmq send: error %d, socket %x\n", len * sizeof(decltype(out)::value_type), socket);
+            log(LOG_NOTICE, "zmq send: error %d, len %d, socket %x\n", errno, len * sizeof(decltype(out)::value_type), socket);
         else
             log(LOG_NOTICE, "zmq:  sent %ld, %d\n", len, sent);
     }
