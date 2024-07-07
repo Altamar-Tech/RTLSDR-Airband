@@ -31,9 +31,11 @@ struct raw {
         if constexpr (std::is_same_v<T, float>) {
             shift(buffer, out.data(), len);
         } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
+            log(LOG_NOTICE, "raw_sender: resize: %d\n", len);
             in.resize(len);
             // convert from type T to float and store in vector in
             std::transform(std::execution::par_unseq, buffer, buffer + len, in.begin(), [](auto v) { return static_cast<short>(v * std::numeric_limits<T>::max()); });
+            log(LOG_NOTICE, "raw_sender: shift: %d\n", len / 2);
             shift(in.data(), out.data(), len / 2);
         } else {
             log(LOG_NOTICE, "raw(process): unsupported type\n");
