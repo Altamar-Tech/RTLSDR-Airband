@@ -772,6 +772,7 @@ int parse_devices(libconfig::Setting& devs) {
             if (devs[i].exists("send_raw")) {
                 auto const* endpoint = (char const*)devs[i]["send_raw"];
                 auto rate = (162.0 - dev->input->centerfreq) / dev->input->sample_rate;
+                log(LOG_NOTICE, "RawSender: rate %f,  endpoint '%s'\n", rate, endpoint);
                 dev->raw_sender = raw(rate, endpoint);
             }
         }  // centerfreq for R_SCAN will be set by parse_channels() after frequency list has been read

@@ -15,7 +15,10 @@ struct raw {
     std::vector<float> out;
 
    public:
-    raw(float rate, const char* addr) : context(zmq_ctx_new()), socket(zmq_socket(context, ZMQ_PUB)), shift(rate) { zmq_bind(socket, addr); }
+    raw(float rate, const char* addr) : context(zmq_ctx_new()), socket(zmq_socket(context, ZMQ_PUB)), shift(rate) {
+        zmq_bind(socket, addr);
+        printf("zmq: bind %s\n", addr);
+    }
     ~raw() {
         zmq_close(socket);
         zmq_ctx_destroy(context);
