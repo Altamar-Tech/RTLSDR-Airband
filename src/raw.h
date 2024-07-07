@@ -17,8 +17,8 @@ struct raw {
 
    public:
     raw(float rate, const char* addr) : context(zmq_ctx_new()), socket(zmq_socket(context, ZMQ_PUB)), shift(rate) {
-        zmq_bind(socket, addr);
-        log(LOG_NOTICE, "zmq:  bind '%s'\n", addr);
+        auto rc = zmq_bind(socket, addr);
+        log(LOG_NOTICE, "zmq:  bind '%s':%d\n", addr, rc);
     }
     ~raw() {
         zmq_close(socket);
@@ -46,6 +46,9 @@ struct raw {
 
     void send(void const* buffer, std::size_t len) {
         auto sent = zmq_send(socket, buffer, len, 0);
-        printf("zmq:  sent %ld, %d\n", len, sent);
+        if (sent == -1)
+            printf("zmq send: error: %d\n", errno);
+        else
+            printf("zmq:  sent %ld, %d\n", len, sent);
     }
 };
