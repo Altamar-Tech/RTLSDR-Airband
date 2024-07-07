@@ -399,6 +399,7 @@ void* demodulate(void* params) {
             continue;
         }
 
+        log(LOG_NOTICE, "raw_sender: %s\n", dev->raw_sender ? "true" : "false");
         if (dev->raw_sender) {
             log(LOG_NOTICE, "raw_sender: sfmt: %d\n", dev->input->sfmt);
             switch (dev->input->sfmt) {
