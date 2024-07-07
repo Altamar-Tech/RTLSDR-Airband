@@ -2,6 +2,17 @@
 #include <cmath>
 #include <complex>
 
+#define iof_l(complexf_input_p, i) (*(((float*)complexf_input_p) + 2 * (i)))
+#define qof_l(complexf_input_p, i) (*(((float*)complexf_input_p) + 2 * (i) + 1))
+#define iof(complexf_input_p, i) (*(((float const*)complexf_input_p) + 2 * (i)))
+#define qof(complexf_input_p, i) (*(((float const*)complexf_input_p) + 2 * (i) + 1))
+#define SADF_L1(j)                                              \
+    cos_vals_##j = cos_start * dcos_##j - sin_start * dsin_##j; \
+    sin_vals_##j = sin_start * dcos_##j + cos_start * dsin_##j;
+#define SADF_L2(j)                                                                                              \
+    iof_l(output, 4 * i + j) = (cos_vals_##j) * iof(input, 4 * i + j) - (sin_vals_##j) * qof(input, 4 * i + j); \
+    qof_l(output, 4 * i + j) = (sin_vals_##j) * iof(input, 4 * i + j) + (cos_vals_##j) * qof(input, 4 * i + j);
+
 struct freq_shift {
    private:
     float d_sin[4];
@@ -19,75 +30,32 @@ struct freq_shift {
 
     float shift_addfast_cc(std::complex<float> const* input, std::complex<float>* output, int input_size, float starting_phase) const {
         // input_size should be multiple of 4
-        float cos_start[4], sin_start[4];
-        for (int i = 0; i < 4; i++) {
-            cos_start[i] = cos(starting_phase);
-            sin_start[i] = sin(starting_phase);
+        // fprintf(stderr, "shift_addfast_cc: input_size = %d\n", input_size);
+        float cos_start = cos(starting_phase);
+        float sin_start = sin(starting_phase);
+        float cos_vals_0, cos_vals_1, cos_vals_2, cos_vals_3, sin_vals_0, sin_vals_1, sin_vals_2, sin_vals_3;
+        float dsin_0 = d_sin[0];
+        float dsin_1 = d_sin[1];
+        float dsin_2 = d_sin[2];
+        float dsin_3 = d_sin[3];
+        float dcos_0 = d_cos[0];
+        float dcos_1 = d_cos[1];
+        float dcos_2 = d_cos[2];
+        float dcos_3 = d_cos[3];
+
+        for (int i = 0; i < input_size / 4; ++i)  //@shift_addfast_cc
+        {
+            SADF_L1(0)
+            SADF_L1(1)
+            SADF_L1(2)
+            SADF_L1(3)
+            SADF_L2(0)
+            SADF_L2(1)
+            SADF_L2(2)
+            SADF_L2(3)
+            cos_start = cos_vals_3;
+            sin_start = sin_vals_3;
         }
-
-        float const* pdcos = d_cos;
-        float const* pdsin = d_sin;
-        float const* pinput = (float const*)input;
-        float const* pinput_end = (float const*)(input + input_size);
-        float* poutput = (float*)output;
-
-// Register map:
-#define RDCOS "q0"  // dcos, dsin
-#define RDSIN "q1"
-#define RCOSST "q2"  // cos_start, sin_start
-#define RSINST "q3"
-#define RCOSV "q4"  // cos_vals, sin_vals
-#define RSINV "q5"
-#define ROUTI "q6"  // output_i, output_q
-#define ROUTQ "q7"
-#define RINPI "q8"  // input_i, input_q
-#define RINPQ "q9"
-#define R3(x, y, z) x ", " y ", " z "\n\t"
-
-        asm volatile(  //(the range of q is q0-q15)
-            "       vld1.32 {" RDCOS
-            "}, [%[pdcos]]\n\t"
-            "       vld1.32 {" RDSIN
-            "}, [%[pdsin]]\n\t"
-            "       vld1.32 {" RCOSST
-            "}, [%[cos_start]]\n\t"
-            "       vld1.32 {" RSINST
-            "}, [%[sin_start]]\n\t"
-            "for_addfast: vld2.32 {" RINPI "-" RINPQ
-            "}, [%[pinput]]!\n\t"  // load q0 and q1 directly from the memory address stored in pinput, with interleaving (so that we get the I samples in RINPI and the Q samples in RINPQ), also
-                                   // increment the memory address in pinput (hence the "!" mark)
-
-            // C version:
-            // cos_vals[j] = cos_start * d->dcos[j] - sin_start * d->dsin[j];
-            // sin_vals[j] = sin_start * d->dcos[j] + cos_start * d->dsin[j];
-
-            "       vmul.f32 " R3(RCOSV, RCOSST, RDCOS)  // cos_vals[i] = cos_start * d->dcos[i]
-            "       vmls.f32 " R3(RCOSV, RSINST, RDSIN)  // cos_vals[i] -= sin_start * d->dsin[i]
-            "       vmul.f32 " R3(RSINV, RSINST, RDCOS)  // sin_vals[i] = sin_start * d->dcos[i]
-            "       vmla.f32 " R3(RSINV, RCOSST, RDSIN)  // sin_vals[i] += cos_start * d->dsin[i]
-
-            // C version:
-            // iof(output,4*i+j)=cos_vals[j]*iof(input,4*i+j)-sin_vals[j]*qof(input,4*i+j);
-            // qof(output,4*i+j)=sin_vals[j]*iof(input,4*i+j)+cos_vals[j]*qof(input,4*i+j);
-            "       vmul.f32 " R3(ROUTI, RCOSV, RINPI)  // output_i =  cos_vals * input_i
-            "       vmls.f32 " R3(ROUTI, RSINV, RINPQ)  // output_i -= sin_vals * input_q
-            "       vmul.f32 " R3(ROUTQ, RSINV, RINPI)  // output_q =  sin_vals * input_i
-            "       vmla.f32 " R3(ROUTQ, RCOSV, RINPQ)  // output_i += cos_vals * input_q
-
-            "       vst2.32 {" ROUTI "-" ROUTQ
-            "}, [%[poutput]]!\n\t"  // store the outputs in memory
-            //"     add %[poutput],%[poutput],#32\n\t"
-            "       vdup.32 " RCOSST
-            ", d9[1]\n\t"  // cos_start[0-3] = cos_vals[3]
-            "       vdup.32 " RSINST
-            ", d11[1]\n\t"  // sin_start[0-3] = sin_vals[3]
-
-            "       cmp %[pinput], %[pinput_end]\n\t"         // if(pinput != pinput_end)
-            "       bcc for_addfast\n\t"                      //    then goto for_addfast
-            : [pinput] "+r"(pinput), [poutput] "+r"(poutput)  // output operand list -> C variables that we will change from ASM
-            : [pinput_end] "r"(pinput_end), [pdcos] "r"(pdcos), [pdsin] "r"(pdsin), [sin_start] "r"(sin_start), [cos_start] "r"(cos_start)  // input operand list
-            : "memory", "q0", "q1", "q2", "q4", "q5", "q6", "q7", "q8", "q9", "cc"                                                          // clobber list
-        );
         starting_phase += input_size * phase_increment;
         while (starting_phase > M_PI)
             starting_phase -= 2 * M_PI;
