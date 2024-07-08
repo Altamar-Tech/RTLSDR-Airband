@@ -66,7 +66,7 @@
 #define DEFAULT_SAMPLE_RATE 2560000
 
 #ifdef NFM
-#define WAVE_RATE 16000
+#define WAVE_RATE 96000
 #else
 #define WAVE_RATE 8000
 #endif /* NFM */
