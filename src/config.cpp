@@ -246,6 +246,11 @@ static int parse_outputs(libconfig::Setting& outs, channel_t* channel, int i, in
                 pdata->stream_name = strdup(buf);
             }
 #endif /* WITH_PULSEAUDIO */
+        } else if (!strncmp(outs[o]["type"], "raw_zmq", 7)) {
+            channel->outputs[oo].data = XCALLOC(1, sizeof(struct zmq_data));
+            channel->outputs[oo].type = O_RAW_ZMQ;
+            zmq_data* pdata = (zmq_data*)(channel->outputs[oo].data);
+            pdata->address = outs[o].exists("address") ? std::string((char const*)outs[o]["address"]) : std::string("tcp://*:1234");
         } else {
             if (parsing_mixers) {
                 cerr << "Configuration error: mixers.[" << i << "] outputs.[" << o << "]: ";

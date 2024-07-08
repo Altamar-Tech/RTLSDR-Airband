@@ -26,6 +26,7 @@
 #include <shout/shout.h>
 #include <stdint.h>  // uint32_t
 #include <sys/time.h>
+#include <zmq.h>
 #include <complex>
 #include <cstdio>
 #include <libconfig.h++>
@@ -106,11 +107,11 @@ enum output_type {
     O_FILE,
     O_RAWFILE,
     O_MIXER,
-    O_UDP_STREAM
+    O_UDP_STREAM,
 #ifdef WITH_PULSEAUDIO
-    ,
-    O_PULSE
+    O_PULSE,
 #endif /* WITH_PULSEAUDIO */
+    O_RAW_ZMQ,
 };
 
 struct icecast_data {
@@ -157,6 +158,33 @@ struct udp_stream_data {
     int send_socket;
     struct sockaddr dest_sockaddr;
     socklen_t dest_sockaddr_len;
+};
+
+struct zmq_data {
+    std::string address;
+    void* socket;
+
+    static void* context() {
+        static void* zmq_context = zmq_ctx_new();
+        return zmq_context;
+    }
+
+    void init() {
+        if (socket)
+            zmq_close(socket);
+        socket = zmq_socket(context(), ZMQ_PUB);
+        auto error = zmq_bind(socket, address.c_str());
+        if (error)
+            log(LOG_ERR, "zmq:  bind '%s', rc %d, socket:%x\n", address.c_str(), error, socket);
+    }
+
+    void write(void const* buffer, std::size_t byte_len) const {
+        auto sent = zmq_send(socket, buffer, byte_len, 0);
+        if (sent == -1)
+            log(LOG_NOTICE, "zmq send: error %d, len %ld, socket %x\n", errno, byte_len, socket);
+        else
+            log(LOG_NOTICE, "zmq:  sent %ld, %d\n", byte_len, sent);
+    }
 };
 
 #ifdef WITH_PULSEAUDIO

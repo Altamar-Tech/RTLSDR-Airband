@@ -554,6 +554,10 @@ void process_outputs(channel_t* channel, int cur_scan_freq) {
 
             pulse_write_stream(pdata, channel->mode, channel->waveout, channel->waveout_r, (size_t)WAVE_BATCH * sizeof(float));
 #endif /* WITH_PULSEAUDIO */
+        } else if (channel->outputs[k].type == O_RAW_ZMQ) {
+            auto* pdata = (zmq_data*)(channel->outputs[k].data);
+            auto byte_len = 2 * sizeof(float) * WAVE_BATCH;
+            pdata->write(channel->iq_out, byte_len);
         }
     }
 }
@@ -584,6 +588,10 @@ void disable_channel_outputs(channel_t* channel) {
             pulse_data* pdata = (pulse_data*)(output->data);
             pulse_shutdown(pdata);
 #endif /* WITH_PULSEAUDIO */
+        } else if (output->type == O_RAW_ZMQ) {
+            zmq_data* pdata = (zmq_data*)(output->data);
+            zmq_close(pdata->socket);
+            pdata->socket = nullptr;
         }
     }
 }

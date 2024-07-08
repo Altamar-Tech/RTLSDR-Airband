@@ -966,6 +966,9 @@ int main(int argc, char* argv[]) {
                 pulse_init();
                 pulse_setup((pulse_data*)(output->data), channel->mode);
 #endif /* WITH_PULSEAUDIO */
+            } else if (output->type == O_RAW_ZMQ) {
+                auto* pdata = (zmq_data*)(output->data);
+                pdata->init();
             }
         }
     }
@@ -995,6 +998,9 @@ int main(int argc, char* argv[]) {
                     pulse_init();
                     pulse_setup((pulse_data*)(output->data), channel->mode);
 #endif /* WITH_PULSEAUDIO */
+                } else if (output->type == O_RAW_ZMQ) {
+                    auto* pdata = (zmq_data*)(output->data);
+                    pdata->init();
                 }
             }
         }
