@@ -174,8 +174,7 @@ struct zmq_data {
             zmq_close(socket);
         socket = zmq_socket(context(), ZMQ_PUB);
         auto error = zmq_bind(socket, address.c_str());
-        if (error)
-            log(LOG_ERR, "zmq:  bind '%s', rc %d, socket:%x\n", address.c_str(), error, socket);
+        log(LOG_NOTICE, "zmq:  bind '%s', rc %d, socket:%x\n", address.c_str(), error, socket);
     }
 
     void write(void const* buffer, std::size_t byte_len) const {
