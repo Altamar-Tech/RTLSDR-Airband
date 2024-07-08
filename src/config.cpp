@@ -247,11 +247,13 @@ static int parse_outputs(libconfig::Setting& outs, channel_t* channel, int i, in
             }
 #endif /* WITH_PULSEAUDIO */
         } else if (!strncmp(outs[o]["type"], "raw_zmq", 7)) {
+            cerr << "start zmq";
             channel->outputs[oo].data = XCALLOC(1, sizeof(struct zmq_data));
             channel->outputs[oo].type = O_RAW_ZMQ;
             zmq_data* pdata = (zmq_data*)(channel->outputs[oo].data);
             pdata->address = outs[o].exists("address") ? std::string((char const*)outs[o]["address"]) : std::string("tcp://*:1234");
             channel->needs_raw_iq = channel->has_iq_outputs = 1;
+            cerr << "end zmq";
         } else {
             if (parsing_mixers) {
                 cerr << "Configuration error: mixers.[" << i << "] outputs.[" << o << "]: ";
