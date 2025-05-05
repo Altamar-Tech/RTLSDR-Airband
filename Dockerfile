@@ -58,7 +58,9 @@ COPY . /workspace/rtlsdr-airband-src
 RUN cd /workspace/rtlsdr-airband-src && \
     rm -rf build && mkdir build && \
     VERSION="5.1.1" && \
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -D NFM=ON -D MIRISDR=OFF -D PLATFORM=native . && \
+    # Set flags for RPi 5 (Cortex-A76 / ARMv8.2-A)
+    # cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -D NFM=ON -D MIRISDR=OFF -DCMAKE_C_FLAGS="-mcpu=cortex-a76 -mtune=cortex-a76" -DCMAKE_CXX_FLAGS="-mcpu=cortex-a76 -mtune=cortex-a76" . && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -D NFM=ON -D MIRISDR=OFF . && \
     cmake --build build --config Release && \
     mkdir -p /tmp/RTLSDR-Airband/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \

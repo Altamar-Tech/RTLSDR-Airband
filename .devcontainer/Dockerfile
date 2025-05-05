@@ -16,7 +16,5 @@ RUN DEBIAN_FRONTEND=noninteractive \
         pre-commit
 
 WORKDIR /app
-COPY .github/install_dependencies /app/
-RUN /app/install_dependencies
 
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
