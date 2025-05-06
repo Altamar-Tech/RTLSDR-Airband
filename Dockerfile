@@ -59,7 +59,7 @@ RUN cd /workspace/rtlsdr-airband-src && \
     rm -rf build && mkdir build && \
     VERSION="5.1.1" && \
     # Use a baseline ARMv8-A architecture for broader compatibility
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug -D NFM=ON -D MIRISDR=OFF . && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -D NFM=ON -D MIRISDR=OFF . && \
     cmake --build build --config Release && \
     mkdir -p /tmp/RTLSDR-Airband/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
