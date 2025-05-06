@@ -27,7 +27,7 @@ WORKDIR /workspace
 RUN git clone --branch v1.3.6 --single-branch https://github.com/rtlsdrblog/rtl-sdr-blog.git && \
     cd rtl-sdr-blog && \
     rm -rf build && mkdir build && \
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug && \
     cmake --build build --config Release && \
     mkdir -p /tmp/rtl-sdr-blog/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
