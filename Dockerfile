@@ -27,7 +27,17 @@ WORKDIR /workspace
 RUN git clone --branch v1.3.6 --single-branch https://github.com/rtlsdrblog/rtl-sdr-blog.git && \
     cd rtl-sdr-blog && \
     rm -rf build && mkdir build && \
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    ARCH_BUILD=$(dpkg --print-architecture) && \
+    COMMON_CPU_FLAGS="" && \
+    if [ "$ARCH_BUILD" = "amd64" ]; then \
+        COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
+    elif [ "$ARCH_BUILD" = "arm64" ]; then \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=generic"; \
+    fi && \
+    echo "Using CPU flags for $ARCH_BUILD (rtl-sdr-blog): $COMMON_CPU_FLAGS" && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_FLAGS="${COMMON_CPU_FLAGS}" \
+          -DCMAKE_CXX_FLAGS="${COMMON_CPU_FLAGS}" && \
     cmake --build build --config Release && \
     mkdir -p /tmp/rtl-sdr-blog/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
@@ -41,7 +51,17 @@ RUN git clone --branch v1.3.6 --single-branch https://github.com/rtlsdrblog/rtl-
 RUN git clone --branch v1.0.10 --single-branch https://github.com/airspy/airspyone_host.git && \
     cd airspyone_host && \
     rm -rf build && mkdir build && \
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release && \
+    ARCH_BUILD=$(dpkg --print-architecture) && \
+    COMMON_CPU_FLAGS="" && \
+    if [ "$ARCH_BUILD" = "amd64" ]; then \
+        COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
+    elif [ "$ARCH_BUILD" = "arm64" ]; then \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=generic"; \
+    fi && \
+    echo "Using CPU flags for $ARCH_BUILD (airspyone_host): $COMMON_CPU_FLAGS" && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_FLAGS="${COMMON_CPU_FLAGS}" \
+          -DCMAKE_CXX_FLAGS="${COMMON_CPU_FLAGS}" && \
     cmake --build build --config Release && \
     mkdir -p /tmp/airspyone_host/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
@@ -58,7 +78,18 @@ COPY . /workspace/rtlsdr-airband-src
 RUN cd /workspace/rtlsdr-airband-src && \
     rm -rf build && mkdir build && \
     VERSION="5.1.1" && \
-    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Debug -D NFM=ON -D MIRISDR=OFF . && \
+    ARCH_BUILD=$(dpkg --print-architecture) && \
+    COMMON_CPU_FLAGS="" && \
+    if [ "$ARCH_BUILD" = "amd64" ]; then \
+        COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
+    elif [ "$ARCH_BUILD" = "arm64" ]; then \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=generic"; \
+    fi && \
+    echo "Using CPU flags for $ARCH_BUILD (rtlsdr-airband): $COMMON_CPU_FLAGS" && \
+    cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+          -DCMAKE_C_FLAGS="${COMMON_CPU_FLAGS}" \
+          -DCMAKE_CXX_FLAGS="${COMMON_CPU_FLAGS}" \
+          -D NFM=ON -D MIRISDR=OFF . && \
     cmake --build build --config Release && \
     mkdir -p /tmp/RTLSDR-Airband/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
