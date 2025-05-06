@@ -32,7 +32,7 @@ RUN git clone --branch v1.3.6 --single-branch https://github.com/rtlsdrblog/rtl-
     if [ "$ARCH_BUILD" = "amd64" ]; then \
         COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
     elif [ "$ARCH_BUILD" = "arm64" ]; then \
-        COMMON_CPU_FLAGS="-mcpu=cortex-a53"; \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=cortex-a76"; \
     fi && \
     echo "Using CPU flags for $ARCH_BUILD (rtl-sdr-blog): $COMMON_CPU_FLAGS" && \
     cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
@@ -56,7 +56,7 @@ RUN git clone --branch v1.0.10 --single-branch https://github.com/airspy/airspyo
     if [ "$ARCH_BUILD" = "amd64" ]; then \
         COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
     elif [ "$ARCH_BUILD" = "arm64" ]; then \
-        COMMON_CPU_FLAGS="-mcpu=cortex-a53"; \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=cortex-a76"; \
     fi && \
     echo "Using CPU flags for $ARCH_BUILD (airspyone_host): $COMMON_CPU_FLAGS" && \
     cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release \
@@ -83,7 +83,7 @@ RUN cd /workspace/rtlsdr-airband-src && \
     if [ "$ARCH_BUILD" = "amd64" ]; then \
         COMMON_CPU_FLAGS="-march=x86-64-v2 -mtune=generic"; \
     elif [ "$ARCH_BUILD" = "arm64" ]; then \
-        COMMON_CPU_FLAGS="-mcpu=cortex-a53"; \
+        COMMON_CPU_FLAGS="-march=armv8-a -mtune=cortex-a76"; \
     fi && \
     echo "Using CPU flags for $ARCH_BUILD (rtlsdr-airband): $COMMON_CPU_FLAGS" && \
     echo "Attempting to get compiler version:" && \
@@ -92,7 +92,7 @@ RUN cd /workspace/rtlsdr-airband-src && \
     cmake -G Ninja -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo \
           -DCMAKE_C_FLAGS="${COMMON_CPU_FLAGS}" \
           -DCMAKE_CXX_FLAGS="${COMMON_CPU_FLAGS}" \
-          -D NFM=ON -D MIRISDR=OFF . && \
+          -D NFM=ON -D MIRISDR=OFF -DPLATFORM=generic . && \
     cmake --build build --config Release -- -v && \
     mkdir -p /tmp/RTLSDR-Airband/DEBIAN && \
     ARCH=$(dpkg --print-architecture) && \
